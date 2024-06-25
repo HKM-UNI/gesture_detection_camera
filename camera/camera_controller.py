@@ -65,6 +65,9 @@ class Camera(QMainWindow):
         self.cnn_worker.start()
 
     def take_screenshoot(self):
+        # Indicarle al control QImageCapture que realice la captura
+        # Esto disparará "processCapturedImage" automáticamente
+        #  con los parámetros necesarios
         self.m_imageCapture.capture()
 
     @Slot(int, QImageCapture.Error, str)
@@ -78,13 +81,18 @@ class Camera(QMainWindow):
 
     @Slot(int, QImage)
     def processCapturedImage(self, requestId, img: QImage):
+        # Definir un buffer especial de QT para datos binarios
         img_bytes = QByteArray()
         img_buffer = QBuffer(img_bytes)
         img_buffer.open(QBuffer.WriteOnly)
 
+        # Guardar los datos de la imagen en el buffer
         img.save(img_buffer, "JPG")
 
+        # Detectar el tipo de gesto
         gesture = cnn_model.detect_gesture(img_bytes.data())
+
+        # Establecer el texto con el gesto obtenido
         self._ui.label_category.setText(f"Gesto: {gesture}")
 
     def release_resources(self):
